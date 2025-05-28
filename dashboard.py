@@ -32,9 +32,9 @@ api = tradeapi.REST(
 account = api.get_account()
 
 st.sidebar.header("Alpaca Account Summary")
-st.sidebar.metric("Equity", f"${float(account.equity):,.2f}")
-st.sidebar.metric("Cash", f"${float(account.cash):,.2f}")
-st.sidebar.metric("Buying Power", f"${float(account.buying_power):,.2f}")
+st.sidebar.metric("Equity", f"${float(account['equity']):,.2f}")
+st.sidebar.metric("Cash", f"${float(account['cash']):,.2f}")
+st.sidebar.metric("Buying Power", f"${float(account['buying_power']):,.2f}")
 
 # Open positions
 positions = api.list_positions()
