@@ -1,37 +1,29 @@
-# screener.py
-
 import yfinance as yf
 import pandas as pd
 from datetime import datetime, timedelta
 
-# Example subset of S&P 500 stocks
-sp500_symbols = [
-    'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA',
-    'TSLA', 'AMD', 'NFLX', 'INTC', 'PEP', 'AVGO'
-]
-
 def get_top_momentum_stocks(n=10):
+    sp500_symbols = ['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'TSLA', 'META', 'AMZN', 'AMD', 'NFLX', 'INTC']
     end_date = datetime.today()
     start_date = end_date - timedelta(days=90)
 
-    df = yf.download(sp500_symbols, start=start_date, end=end_date)['Adj Close']
+    df = yf.download(sp500_symbols, start=start_date, end=end_date, group_by='ticker')
+
+    # Extract 'Adj Close' data properly from multi-indexed DataFrame
+    adj_close = pd.DataFrame({
+        ticker: df[ticker]['Adj Close']
+        for ticker in df.columns.levels[0]
+        if 'Adj Close' in df[ticker]
+    })
 
     momentum_scores = {}
-    for symbol in df.columns:
-        try:
-            r1w = df[symbol].pct_change(5).iloc[-1]
-            r1m = df[symbol].pct_change(21).iloc[-1]
-            r3m = df[symbol].pct_change(63).iloc[-1]
-            score = 0.2 * r1w + 0.3 * r1m + 0.5 * r3m
-            momentum_scores[symbol] = score
-        except Exception:
-            continue
+    for symbol in adj_close.columns:
+        prices = adj_close[symbol].dropna()
+        if len(prices) > 1:
+            momentum = (prices[-1] - prices[0]) / prices[0]
+            momentum_scores[symbol] = momentum
 
-    top_symbols = sorted(momentum_scores, key=momentum_scores.get, reverse=True)[:n]
-    return top_symbols
+    sorted_momentum = sorted(momentum_scores.items(), key=lambda x: x[1], reverse=True)
+    top_stocks = [symbol for symbol, _ in sorted_momentum[:n]]
 
-def calculate_weights(symbols):
-    if not symbols:
-        return {}
-    weight = 1 / len(symbols)
-    return {symbol: weight for symbol in symbols}
+    return top_stocks
