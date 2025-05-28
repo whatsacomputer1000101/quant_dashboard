@@ -1,11 +1,11 @@
+
+from ml_strategy import generate_ml_signals
 from executor import execute_trades
 from screener import get_top_momentum_stocks, calculate_weights
-from ml_strategy import generate_signals_ml
-from datetime import datetime
 
 if __name__ == "__main__":
-    print(f"[{datetime.now()}] 🚀 Starting ML strategy")
+    print("🚀 Running ML-enhanced strategy with extended historical factors")
     top_stocks = get_top_momentum_stocks()
-    signals = generate_signals_ml(top_stocks)
-    weights = calculate_weights(top_stocks)
+    signals = generate_ml_signals(top_stocks)
+    weights = calculate_weights(signals)
     execute_trades(signals, weights)

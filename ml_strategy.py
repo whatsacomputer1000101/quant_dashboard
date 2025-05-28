@@ -1,52 +1,48 @@
+
 import yfinance as yf
 import pandas as pd
-import numpy as np
-from sklearn.neighbors import KNeighborsClassifier
 from ta.momentum import RSIIndicator
 from ta.trend import MACD, SMAIndicator
-from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from factors import compute_factors
 
-def get_features_labels(ticker, period="2y", interval="1d"):
-    df = yf.download(ticker, period=period, interval=interval)
+def fetch_price_data(symbol, period='10y', interval='1d'):
+    df = yf.download(symbol, period=period, interval=interval)
     df.dropna(inplace=True)
+    return df
 
-    df['RSI'] = RSIIndicator(close=df['Close']).rsi()
-    macd = MACD(close=df['Close'])
-    df['MACD'] = macd.macd()
-    df['Signal'] = macd.macd_signal()
-    df['SMA'] = SMAIndicator(close=df['Close'], window=20).sma_indicator()
-
-    df['Future Return'] = df['Close'].pct_change().shift(-1)
-    df['Label'] = np.where(df['Future Return'] > 0.01, 1, np.where(df['Future Return'] < -0.01, -1, 0))
-
-    df.dropna(inplace=True)
-
-    features = df[['RSI', 'MACD', 'Signal', 'SMA']]
-    labels = df['Label']
-    return features, labels, df.index
-
-def train_model(features, labels):
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(features)
-    model = KNeighborsClassifier(n_neighbors=5)
-    model.fit(X_scaled, labels)
-    return model, scaler
-
-def generate_signals_ml(tickers):
+def generate_ml_signals(symbols):
     signals = {}
-    for ticker in tickers:
-        try:
-            features, labels, idx = get_features_labels(ticker)
-            model, scaler = train_model(features, labels)
-            latest_features = scaler.transform([features.iloc[-1]])
-            prediction = model.predict(latest_features)[0]
-            if prediction == 1:
-                signals[ticker] = 'buy'
-            elif prediction == -1:
-                signals[ticker] = 'sell'
-            else:
-                signals[ticker] = 'hold'
-        except Exception as e:
-            print(f"[ML ERROR] {ticker}: {e}")
-            signals[ticker] = 'hold'
+    for symbol in symbols:
+        df = fetch_price_data(symbol)
+        if df.empty:
+            continue
+
+        rsi = RSIIndicator(close=df['Adj Close']).rsi()
+        macd = MACD(close=df['Adj Close']).macd_diff()
+        sma = SMAIndicator(close=df['Adj Close']).sma_indicator()
+
+        factors = compute_factors(symbol)
+        df = df[-len(factors):]
+        df['rsi'] = rsi[-len(factors):].values
+        df['macd'] = macd[-len(factors):].values
+        df['sma'] = sma[-len(factors):].values
+
+        df = pd.concat([df, factors], axis=1).dropna()
+
+        features = df[['rsi', 'macd', 'sma', 'volatility_6m', 'momentum_12m', 'beta_vs_spy']]
+        df['label'] = (df['Adj Close'].shift(-1) > df['Adj Close']).astype(int)
+
+        if len(df) < 30:
+            continue
+
+        X_train = features[:-1]
+        y_train = df['label'][:-1]
+        X_pred = features.iloc[[-1]]
+
+        model = KNeighborsClassifier(n_neighbors=3)
+        model.fit(X_train, y_train)
+        pred = model.predict(X_pred)[0]
+
+        signals[symbol] = 'buy' if pred == 1 else 'sell'
     return signals
