@@ -1,7 +1,7 @@
+streamlit
 alpaca-trade-api
 pandas
-schedule
-streamlit
 yfinance
 ta
 scikit-learn
+python-dotenv
