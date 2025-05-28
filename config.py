@@ -8,7 +8,7 @@ API_KEYS = {
     'paper': {
         'key': os.getenv('PKOZ1KULBUMRJZUPRVJG'),
         'secret': os.getenv('G0EaYtsDmZwY8RHogivfGHGmA4oKNxT9dQx4aG6K'),
-        'url': 'https://paper-api.alpaca.markets/v2'
+        'url': 'https://paper-api.alpaca.markets'
     },
     'live': {
         'key': os.getenv('AKEPWP4ARTWCFMDXWKBC'),
@@ -19,3 +19,4 @@ API_KEYS = {
 
 def get_api_credentials():
     return API_KEYS[ENV]
+
