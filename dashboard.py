@@ -23,7 +23,12 @@ if ENV == "live":
 
 # Account summary via Alpaca
 creds = get_api_credentials()
-api = tradeapi.REST(creds['key'], creds['secret'], creds['url'])
+api = tradeapi.REST(
+    key_id=creds['key'],
+    secret_key=creds['secret'],
+    base_url=creds['url'],
+    raw_data=True  # ensures no env lookup fallback
+)
 account = api.get_account()
 
 st.sidebar.header("Alpaca Account Summary")
