@@ -27,3 +27,16 @@ def get_top_momentum_stocks(n=10):
     top_stocks = [symbol for symbol, _ in sorted_momentum[:n]]
 
     return top_stocks
+
+def calculate_weights(signals):
+    """
+    Assign equal weights to each stock in the signal list.
+    :param signals: dict of symbols with 'buy', 'hold', or 'sell'
+    :return: dict of weights
+    """
+    buy_signals = [symbol for symbol, signal in signals.items() if signal == 'buy']
+    if not buy_signals:
+        return {}
+
+    weight = 1 / len(buy_signals)
+    return {symbol: weight for symbol in buy_signals}
