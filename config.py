@@ -1,14 +1,18 @@
-ENV = 'paper'
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+ENV = os.getenv('ENV', 'paper')  # default to paper
 
 API_KEYS = {
     'paper': {
-        'key': 'YOUR_PAPER_API_KEY',
-        'secret': 'YOUR_PAPER_SECRET_KEY',
-        'url': 'https://paper-api.alpaca.markets'
+        'key': os.getenv('PKOZ1KULBUMRJZUPRVJG'),
+        'secret': os.getenv('G0EaYtsDmZwY8RHogivfGHGmA4oKNxT9dQx4aG6K'),
+        'url': 'https://paper-api.alpaca.markets/v2'
     },
     'live': {
-        'key': 'YOUR_LIVE_API_KEY',
-        'secret': 'YOUR_LIVE_SECRET_KEY',
+        'key': os.getenv('AKEPWP4ARTWCFMDXWKBC'),
+        'secret': os.getenv('QINfX2EjDQlY5HFA5kChON6Yd1gTXK7Ubgr8kelJ'),
         'url': 'https://api.alpaca.markets'
     }
 }
