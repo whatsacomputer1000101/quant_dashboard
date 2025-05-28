@@ -75,8 +75,7 @@ def calculate_qty(api, symbol, weight):
 
 def log_trade(timestamp, symbol, action, qty, price):
     with open(TRADE_LOG, "a") as f:
-        f.write(f"{timestamp},{symbol},{action},{qty},{price}
-")
+        f.write(f"{timestamp},{symbol},{action},{qty},{price}\n")
 
 def count_trades_this_week():
     from datetime import datetime, timedelta
