@@ -92,3 +92,8 @@ def count_trades_this_week():
             except:
                 continue
     return count
+
+from logger import log_trade_to_sheet
+
+# Inside your trade execution loop
+log_trade_to_sheet(symbol, action, qty, price)
