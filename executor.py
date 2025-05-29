@@ -7,6 +7,7 @@ from datetime import datetime
 import time
 import yfinance as yf
 import pandas as pd
+from logger import log_trade_to_sheet
 
 TRADE_LOG = "trade_log.csv"
 TRADE_LIMIT = 10  # Max trades per week
@@ -26,7 +27,7 @@ def execute_trades(signals, weights):
 
     trade_count = count_trades_this_week()
     print(f"[INFO] Trades executed this week: {trade_count}")
-    
+
     for symbol, signal in signals.items():
         if trade_count >= TRADE_LIMIT:
             print("[LIMIT] Weekly trade cap reached. Skipping further trades.")
@@ -56,6 +57,7 @@ def execute_trades(signals, weights):
                 take_profit={'limit_price': take_profit}
             )
             log_trade(datetime.now(), symbol, side, qty, price)
+            log_trade_to_sheet(symbol, side, qty, price)  # ✅ Correctly placed
             print(f"[TRADE] {side.upper()} {qty} shares of {symbol} @ ${price}")
             trade_count += 1
         except Exception as e:
@@ -92,8 +94,3 @@ def count_trades_this_week():
             except:
                 continue
     return count
-
-from logger import log_trade_to_sheet
-
-# Inside your trade execution loop
-log_trade_to_sheet(symbol, action, qty, price)
