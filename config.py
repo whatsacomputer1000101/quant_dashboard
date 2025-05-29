@@ -1,18 +1,22 @@
-# config.py
 import os
 
 def get_api_credentials():
     env = os.getenv("TRADING_ENV", "PAPER").upper()
 
-    if env == "LIVE":
-        return {
-            "key": os.getenv("AKEPWP4ARTWCFMDXWKBC"),
-            "secret": os.getenv("QINfX2EjDQlY5HFA5kChON6Yd1gTXK7Ubgr8kelJ"),
-            "url": os.getenv("APCA_API_BASE_URL_LIVE", "https://api.alpaca.markets")
-        }
-    else:
-        return {
-            "key": os.getenv("PKOZ1KULBUMRJZUPRVJG"),
-            "secret": os.getenv("G0EaYtsDmZwY8RHogivfGHGmA4oKNxT9dQx4aG6K"),
-            "url": os.getenv("APCA_API_BASE_URL_PAPER", "https://paper-api.alpaca.markets")
-        }
+    key = os.getenv(f"APCA_API_KEY_ID_{env}")
+    secret = os.getenv(f"APCA_API_SECRET_KEY_{env}")
+    url = os.getenv(f"APCA_API_BASE_URL_{env}")
+
+    if not key or not secret or not url:
+        raise EnvironmentError(f"Missing Alpaca credentials for environment: {env}")
+
+    # ✅ Required for Alpaca SDK to function correctly
+    os.environ["APCA_API_KEY_ID"] = key
+    os.environ["APCA_API_SECRET_KEY"] = secret
+    os.environ["APCA_API_BASE_URL"] = url
+
+    return {
+        "key": key,
+        "secret": secret,
+        "url": url
+    }
