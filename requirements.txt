@@ -5,3 +5,5 @@ yfinance
 ta
 scikit-learn
 python-dotenv
+gspread
+oauth2client
