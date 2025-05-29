@@ -38,12 +38,13 @@ jobs:
       - name: Run trading strategy
         run: python main.py
 
-           - name: Send email notification
+      - name: Send email notification
         if: always()
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
           server_port: 465
+          secure: true
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: GitHub Actions - Trade Execution Status: ${{ job.status }}
@@ -53,4 +54,4 @@ jobs:
             Workflow: ${{ github.workflow }}
             Run ID: ${{ github.run_id }}
           to: ${{ secrets.EMAIL_RECIPIENT }}
-          from: GitHub Actions <${{ secrets.EMAIL_USERNAME }}>
+          from: "GitHub Actions <noreply@github.com>"
