@@ -47,11 +47,11 @@ jobs:
           secure: true
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: GitHub Actions - Trade Execution Status: ${{ job.status }}
+          subject: "GitHub Actions - Trade Execution Status: ${{ job.status }}"
           body: |
             The trading workflow has completed with status: ${{ job.status }}.
             Repository: ${{ github.repository }}
             Workflow: ${{ github.workflow }}
             Run ID: ${{ github.run_id }}
           to: ${{ secrets.EMAIL_RECIPIENT }}
-          from: "GitHub Actions <noreply@github.com>"
+          from: ${{ secrets.EMAIL_USERNAME }}
