@@ -36,7 +36,7 @@ def generate_ml_signals(symbols):
             df['label'] = label
 
             # Technical indicators
-            rsi = RSIIndicator(close=df['Adj Close']).rsi()
+	    rsi = RSIIndicator(close=df['Adj Close'].squeeze()).rsi()
             macd = MACD(close=df['Adj Close']).macd_diff()
             sma = SMAIndicator(close=df['Adj Close']).sma_indicator()
 
