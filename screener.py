@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
-yf.pdr_override()
 multitasking.set_max_threads(1)
 
 def get_top_momentum_stocks(n=10):
@@ -21,7 +20,7 @@ def get_top_momentum_stocks(n=10):
 
     for symbol in potential_symbols:
         try:
-            df = yf.download(symbol, start=start_date, end=end_date, progress=False, threads=False)
+            df = yf.download(symbol, start=start_date, end=end_date, auto_adjust=False, progress=False, threads=False)
             if df.empty or 'Adj Close' not in df.columns or 'Volume' not in df.columns:
                 continue
 
