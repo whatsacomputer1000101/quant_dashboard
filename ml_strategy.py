@@ -26,11 +26,9 @@ def generate_ml_signals(symbols):
                 print(f"[WARN] Insufficient data for {symbol}")
                 continue
 
-            # Create label before adding indicators
-            shifted = df['Adj Close'].shift(-1)
-            current = df['Adj Close']
-            shifted, current = shifted.align(current, join='inner')
-            label = (shifted > current).astype(int)
+            # Create label from raw values to avoid index mismatch
+            label = (df['Adj Close'].shift(-1).values > df['Adj Close'].values).astype(int)
+            df['label'] = pd.Series(label, index=df.index)
 
             # Technical indicators
             rsi = RSIIndicator(close=df['Adj Close']).rsi()
@@ -42,7 +40,6 @@ def generate_ml_signals(symbols):
             df['sma'] = sma
 
             df = pd.concat([df, factors], axis=1)
-            df['label'] = label
             df.dropna(inplace=True)
 
             if len(df) < 30:
