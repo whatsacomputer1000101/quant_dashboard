@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
-yf.pdr_override()
 multitasking.set_max_threads(1)
 
 def get_top_momentum_stocks(n=10):
