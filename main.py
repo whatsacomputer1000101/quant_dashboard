@@ -5,6 +5,11 @@ os.environ["USE_MULTITASKING"] = "False"
 import multitasking
 multitasking.set_max_threads(1)  # Prevent thread overload in Streamlit or limited memory
 
+import streamlit as st
+
+st.sidebar.write("ENV:", st.secrets.get("TRADING_ENV", "Not found"))
+st.sidebar.write("Alpaca Key (truncated):", st.secrets.get("APCA_API_KEY_ID_PAPER", "Missing")[:6])
+
 from ml_strategy import generate_ml_signals
 from executor import execute_trades
 from screener import get_top_momentum_stocks, calculate_weights
