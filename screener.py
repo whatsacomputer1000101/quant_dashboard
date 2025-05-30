@@ -1,4 +1,7 @@
 import yfinance as yf
+import multitasking
+multitasking.set_max_threads(1)  # ⛔ limit to one thread only
+
 import pandas as pd
 from datetime import datetime, timedelta
 
@@ -15,8 +18,16 @@ def get_top_momentum_stocks(n=10):
     threads=False  # 🔒 disables threading to avoid Streamlit crash
 )
 
+if isinstance(df.columns, pd.MultiIndex):
+    adj_close = pd.DataFrame({
+        ticker: df[ticker]['Adj Close']
+        for ticker in df.columns.levels[0]
+        if 'Adj Close' in df[ticker]
+    })
+else:
+    return []
 
-    # Extract 'Adj Close' data properly from multi-indexed DataFrame
+
     adj_close = pd.DataFrame({
         ticker: df[ticker]['Adj Close']
         for ticker in df.columns.levels[0]
