@@ -1,4 +1,3 @@
-# screener.py
 import os
 os.environ["USE_MULTITASKING"] = "False"
 
@@ -15,13 +14,31 @@ def get_top_momentum_stocks(n=10):
     start_date = end_date - timedelta(days=90)
 
     momentum_scores = {}
+
     for symbol in sp500_symbols:
         try:
-            df = yf.download(symbol, start=start_date, end=end_date, interval="1d", auto_adjust=False, progress=False, threads=False)
+            df = yf.download(
+                symbol,
+                start=start_date,
+                end=end_date,
+                interval="1d",
+                auto_adjust=False,
+                progress=False,
+                threads=False
+            )
+
+            if df.empty or 'Adj Close' not in df.columns:
+                print(f"[WARN] No valid data for {symbol}")
+                continue
+
             prices = df['Adj Close'].dropna()
-            if len(prices) > 1:
-                momentum = (prices[-1] - prices[0]) / prices[0]
-                momentum_scores[symbol] = momentum
+            if len(prices) < 2:
+                print(f"[WARN] Not enough price data for {symbol}")
+                continue
+
+            momentum = (prices.iloc[-1] - prices.iloc[0]) / prices.iloc[0]
+            momentum_scores[symbol] = momentum
+
         except Exception as e:
             print(f"[WARN] Failed to fetch data for {symbol}: {e}")
 
@@ -34,4 +51,3 @@ def calculate_weights(signals):
         return {}
     weight = 1 / len(buy_signals)
     return {symbol: weight for symbol in buy_signals}
-
