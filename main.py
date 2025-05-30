@@ -1,4 +1,6 @@
-# main.py
+# Disable multitasking completely before any yfinance usage
+import os
+os.environ["USE_MULTITASKING"] = "False"
 
 import multitasking
 multitasking.set_max_threads(1)  # Prevent thread overload in Streamlit or limited memory

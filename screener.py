@@ -1,3 +1,8 @@
+# screener.py
+
+import os
+os.environ["USE_MULTITASKING"] = "False"
+
 import yfinance as yf
 import multitasking
 multitasking.set_max_threads(1)  # ⛔ limit to one thread only
