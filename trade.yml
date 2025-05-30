@@ -1,0 +1,40 @@
+name: Run Quant Trading Bot
+
+on:
+  schedule:
+    - cron: "30 13 * * 1-5"  # Runs Mon–Fri at 6:30 AM PT / 9:30 AM ET
+  workflow_dispatch:  # allows manual trigger
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Create .env from GitHub secrets
+      run: |
+        echo "TRADING_ENV=${{ secrets.TRADING_ENV }}" >> .env
+        echo "APCA_API_KEY_ID_PAPER=${{ secrets.APCA_API_KEY_ID_PAPER }}" >> .env
+        echo "APCA_API_SECRET_KEY_PAPER=${{ secrets.APCA_API_SECRET_KEY_PAPER }}" >> .env
+        echo "APCA_API_BASE_URL_PAPER=${{ secrets.APCA_API_BASE_URL_PAPER }}" >> .env
+        echo "APCA_API_KEY_ID_LIVE=${{ secrets.APCA_API_KEY_ID_LIVE }}" >> .env
+        echo "APCA_API_SECRET_KEY_LIVE=${{ secrets.APCA_API_SECRET_KEY_LIVE }}" >> .env
+        echo "APCA_API_BASE_URL_LIVE=${{ secrets.APCA_API_BASE_URL_LIVE }}" >> .env
+        echo "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" >> .env
+        echo "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> .env
+        echo "EMAIL_RECIPIENT=${{ secrets.EMAIL_RECIPIENT }}" >> .env
+
+    - name: Run Trading Bot
+      run: python main.py
