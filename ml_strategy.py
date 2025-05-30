@@ -26,10 +26,11 @@ def generate_ml_signals(symbols):
                 print(f"[WARN] Insufficient data for {symbol}")
                 continue
 
-            # Create label as aligned Series
-            label = (df['Adj Close'].shift(-1) > df['Adj Close']).astype(int)
-            df = df.iloc[:-1]  # drop last row (no label)
-            label = label.iloc[:-1]
+            # Safe label generation using NumPy arrays
+            shifted = df['Adj Close'].shift(-1).values
+            current = df['Adj Close'].values
+            label = (shifted > current).astype(int)[:-1]  # drop last label
+            df = df.iloc[:-1]  # drop last row to match label length
             df['label'] = label
 
             # Technical indicators
