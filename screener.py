@@ -1,53 +1,45 @@
-import os
-os.environ["USE_MULTITASKING"] = "False"
-
-import multitasking
-multitasking.set_max_threads(1)
-
 import yfinance as yf
+import multitasking
 import pandas as pd
+import numpy as np
 from datetime import datetime, timedelta
 
+yf.pdr_override()
+multitasking.set_max_threads(1)
+
 def get_top_momentum_stocks(n=10):
-    sp500_symbols = ['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'TSLA', 'META', 'AMZN', 'AMD', 'NFLX', 'INTC']
+    fixed_symbols = ['AAPL', 'MSFT', 'GOOGL', 'NVDA', 'TSLA', 'META', 'AMZN', 'AMD', 'NFLX', 'INTC']
+    all_symbols = fixed_symbols.copy()
+
+    # Sample dynamic candidates
+    potential_symbols = ['AVGO', 'ADBE', 'PEP', 'COST', 'CRM', 'ORCL', 'TXN', 'QCOM', 'LLY', 'UNH',
+                         'UPS', 'WMT', 'HD', 'JNJ', 'PG', 'V', 'MA', 'BAC', 'DIS', 'NKE']
+
     end_date = datetime.today()
     start_date = end_date - timedelta(days=90)
-
     momentum_scores = {}
 
-    for symbol in sp500_symbols:
+    for symbol in potential_symbols:
         try:
-            df = yf.download(
-                symbol,
-                start=start_date,
-                end=end_date,
-                interval="1d",
-                auto_adjust=False,
-                progress=False,
-                threads=False
-            )
-
-            if df.empty or 'Adj Close' not in df.columns:
-                print(f"[WARN] No valid data for {symbol}")
+            df = yf.download(symbol, start=start_date, end=end_date, progress=False, threads=False)
+            if df.empty or 'Adj Close' not in df.columns or 'Volume' not in df.columns:
                 continue
 
-            prices = df['Adj Close'].dropna()
-            if len(prices) < 2:
-                print(f"[WARN] Not enough price data for {symbol}")
+            df.dropna(inplace=True)
+            if len(df) < 2 or df['Volume'].mean() < 1_000_000:
                 continue
 
-            # Use .item() to extract scalars from single-element Series
-            start_price = prices.iloc[0].item()
-            end_price = prices.iloc[-1].item()
-            momentum = (end_price - start_price) / start_price
-
+            momentum = (df['Adj Close'].iloc[-1] - df['Adj Close'].iloc[0]) / df['Adj Close'].iloc[0]
             momentum_scores[symbol] = momentum
 
-        except Exception as e:
-            print(f"[WARN] Failed to fetch data for {symbol}: {e}")
+        except Exception:
+            continue
 
     sorted_momentum = sorted(momentum_scores.items(), key=lambda x: x[1], reverse=True)
-    return [symbol for symbol, _ in sorted_momentum[:n]]
+    top_dynamic = [symbol for symbol, _ in sorted_momentum[:n]]
+
+    all_symbols.extend(top_dynamic)
+    return all_symbols
 
 def calculate_weights(signals):
     buy_signals = [symbol for symbol, signal in signals.items() if signal == 'buy']

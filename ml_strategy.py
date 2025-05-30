@@ -1,9 +1,10 @@
+
 import pandas as pd
 import numpy as np
 from ta.momentum import RSIIndicator
-from ta.trend import MACD
+from ta.trend import MACD, EMAIndicator
+from ta.volatility import AverageTrueRange
 from factors import compute_factors
-
 
 def generate_ml_signals(stock_list):
     signals = {}
@@ -13,27 +14,42 @@ def generate_ml_signals(stock_list):
         try:
             df = compute_factors(symbol)
 
-            if df.empty:
-                raise ValueError(f"No factor data for {symbol}")
+            if df.empty or 'Adj Close' not in df.columns:
+                raise ValueError(f"No valid data for {symbol}")
 
-            # Ensure the DataFrame isn't multi-dimensional in any column
             if isinstance(df.columns, pd.MultiIndex):
                 df.columns = df.columns.get_level_values(0)
 
-            # Compute RSI and MACD on Adj Close
-            rsi = RSIIndicator(close=df['Adj Close'].squeeze()).rsi()
-            macd_line = MACD(close=df['Adj Close'].squeeze()).macd_diff()
+            df.dropna(inplace=True)
+            if len(df) < 30:
+                continue
 
-            # Combine into signal logic
-            if rsi.iloc[-1] < 30 and macd_line.iloc[-1] > 0:
+            rsi = RSIIndicator(close=df['Adj Close'].squeeze()).rsi()
+            macd = MACD(close=df['Adj Close'].squeeze()).macd_diff()
+            ema_fast = EMAIndicator(close=df['Adj Close'], window=12).ema_indicator()
+            ema_slow = EMAIndicator(close=df['Adj Close'], window=26).ema_indicator()
+            atr = AverageTrueRange(high=df['High'], low=df['Low'], close=df['Adj Close']).average_true_range()
+
+            zscore = (df['Adj Close'] - df['Adj Close'].rolling(window=20).mean()) / df['Adj Close'].rolling(window=20).std()
+
+            latest_rsi = rsi.iloc[-1]
+            latest_macd = macd.iloc[-1]
+            latest_ema_fast = ema_fast.iloc[-1]
+            latest_ema_slow = ema_slow.iloc[-1]
+            latest_zscore = zscore.iloc[-1]
+            latest_atr = atr.iloc[-1]
+
+            if latest_rsi < 40 and latest_zscore < -0.5 and latest_macd > 0:
                 signals[symbol] = "buy"
-            elif rsi.iloc[-1] > 70 and macd_line.iloc[-1] < 0:
+            elif 40 <= latest_rsi <= 60 and abs(latest_zscore) < 0.25 and latest_ema_fast > latest_ema_slow:
+                signals[symbol] = "buy"
+            elif latest_rsi > 70 and latest_macd < 0:
                 signals[symbol] = "sell"
             else:
                 signals[symbol] = "hold"
 
         except Exception as e:
-            print(f"Error:  Failed for {symbol}: {e}")
+            print(f"Error: Failed for {symbol}: {e}")
             signals[symbol] = "hold"
 
     return signals
