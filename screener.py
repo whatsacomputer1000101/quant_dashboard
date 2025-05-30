@@ -7,7 +7,14 @@ def get_top_momentum_stocks(n=10):
     end_date = datetime.today()
     start_date = end_date - timedelta(days=90)
 
-    df = yf.download(sp500_symbols, start=start_date, end=end_date, group_by='ticker')
+    df = yf.download(
+    sp500_symbols,
+    start=start_date,
+    end=end_date,
+    group_by="ticker",
+    threads=False  # 🔒 disables threading to avoid Streamlit crash
+)
+
 
     # Extract 'Adj Close' data properly from multi-indexed DataFrame
     adj_close = pd.DataFrame({
