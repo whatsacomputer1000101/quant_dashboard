@@ -17,13 +17,20 @@ def generate_ml_signals(symbols):
             factors = compute_factors(symbol)
             df = fetch_price_data(symbol)
 
-            # Align indexes before proceeding
-            df = df.loc[df.index.intersection(factors.index)]
-            factors = factors.loc[df.index]
+            # Align and intersect common dates
+            common_index = df.index.intersection(factors.index)
+            df = df.loc[common_index]
+            factors = factors.loc[common_index]
 
             if df.empty or factors.empty or len(df) < 30:
                 print(f"[WARN] Insufficient data for {symbol}")
                 continue
+
+            # Create label before adding indicators
+            shifted = df['Adj Close'].shift(-1)
+            current = df['Adj Close']
+            shifted, current = shifted.align(current, join='inner')
+            label = (shifted > current).astype(int)
 
             # Technical indicators
             rsi = RSIIndicator(close=df['Adj Close']).rsi()
@@ -34,15 +41,15 @@ def generate_ml_signals(symbols):
             df['macd'] = macd
             df['sma'] = sma
 
-            df = pd.concat([df, factors], axis=1).dropna()
+            df = pd.concat([df, factors], axis=1)
+            df['label'] = label
+            df.dropna(inplace=True)
 
             if len(df) < 30:
                 print(f"[WARN] Skipping {symbol}, insufficient data after cleaning")
                 continue
 
             features = df[['rsi', 'macd', 'sma', 'volatility_6m', 'momentum_12m', 'beta_vs_spy']]
-            df['label'] = (df['Adj Close'].shift(-1) > df['Adj Close']).astype(int)
-
             X_train = features[:-1]
             y_train = df['label'][:-1]
             X_pred = features.iloc[[-1]]
