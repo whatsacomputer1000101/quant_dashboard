@@ -9,17 +9,18 @@ def compute_factors(symbol, period='10y', interval='1d'):
     if isinstance(df.columns, pd.MultiIndex):
         df.columns = df.columns.get_level_values(0)
 
-    # Ensure 'Adj Close' exists
-    if 'Adj Close' not in df.columns:
-        raise ValueError(f"'Adj Close' missing for {symbol}. Available columns: {df.columns.tolist()}")
+    # Ensure critical columns are present
+    required = ['Adj Close', 'High', 'Low', 'Close']
+    if not all(col in df.columns for col in required):
+        raise ValueError(f"{symbol} missing required columns: {df.columns.tolist()}")
 
     df.dropna(inplace=True)
 
     df['returns'] = df['Adj Close'].pct_change()
-    df['volatility_6m'] = df['returns'].rolling(window=126).std()  # ~6 months
-    df['momentum_12m'] = df['Adj Close'].pct_change(periods=252)   # ~1 year
+    df['volatility_6m'] = df['returns'].rolling(window=126).std()
+    df['momentum_12m'] = df['Adj Close'].pct_change(periods=252)
 
-    # Dummy beta to SPY for now
+    # Compute beta vs SPY
     spy = yf.download('SPY', period=period, interval=interval, auto_adjust=False, progress=False, threads=False)
     if isinstance(spy.columns, pd.MultiIndex):
         spy.columns = spy.columns.get_level_values(0)
@@ -31,7 +32,6 @@ def compute_factors(symbol, period='10y', interval='1d'):
     combined = pd.concat([df['returns'], spy['spy_returns']], axis=1).dropna()
     cov = combined.cov().iloc[0, 1]
     var = combined['spy_returns'].var()
-    beta = cov / var if var != 0 else np.nan
-    df['beta_vs_spy'] = beta
+    df['beta_vs_spy'] = cov / var if var != 0 else np.nan
 
-    return df[['Adj Close', 'volatility_6m', 'momentum_12m', 'beta_vs_spy']]
+    return df  # Return all price data + factors for downstream logic
