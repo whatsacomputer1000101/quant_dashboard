@@ -1,3 +1,4 @@
+# screener.py
 import os
 os.environ["USE_MULTITASKING"] = "False"
 
@@ -33,3 +34,4 @@ def calculate_weights(signals):
         return {}
     weight = 1 / len(buy_signals)
     return {symbol: weight for symbol in buy_signals}
+
