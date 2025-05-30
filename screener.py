@@ -17,7 +17,7 @@ def get_top_momentum_stocks(n=10):
     momentum_scores = {}
     for symbol in sp500_symbols:
         try:
-            df = yf.download(symbol, start=start_date, end=end_date, interval="1d", progress=False, threads=False)
+            df = yf.download(symbol, start=start_date, end=end_date, interval="1d", auto_adjust=False, progress=False, threads=False)
             prices = df['Adj Close'].dropna()
             if len(prices) > 1:
                 momentum = (prices[-1] - prices[0]) / prices[0]
