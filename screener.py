@@ -36,8 +36,11 @@ def get_top_momentum_stocks(n=10):
                 print(f"[WARN] Not enough price data for {symbol}")
                 continue
 
-            # Use iloc to avoid label-based index mismatches
-            momentum = float(prices.iloc[-1] - prices.iloc[0]) / prices.iloc[0]
+            # Use .item() to extract scalars from single-element Series
+            start_price = prices.iloc[0].item()
+            end_price = prices.iloc[-1].item()
+            momentum = (end_price - start_price) / start_price
+
             momentum_scores[symbol] = momentum
 
         except Exception as e:
