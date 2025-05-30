@@ -37,7 +37,7 @@ def get_top_momentum_stocks(n=10):
                 continue
 
             # Use iloc to avoid label-based index mismatches
-            momentum = (prices.iloc[-1] - prices.iloc[0]) / prices.iloc[0]
+            momentum = float(prices.iloc[-1] - prices.iloc[0]) / prices.iloc[0]
             momentum_scores[symbol] = momentum
 
         except Exception as e:
