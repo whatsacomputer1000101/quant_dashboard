@@ -10,7 +10,7 @@ import pandas as pd
 from logger import log_trade_to_sheet
 
 TRADE_LOG = "trade_log.csv"
-TRADE_LIMIT = 10  # Max trades per week
+TRADE_LIMIT = 30  # Max trades per week
 
 def get_atr(symbol, period=14):
     df = yf.download(symbol, period="2mo", interval="1d")
