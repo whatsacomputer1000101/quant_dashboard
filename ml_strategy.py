@@ -22,13 +22,15 @@ def generate_ml_signals(symbols):
             df = df.loc[common_index]
             factors = factors.loc[common_index]
 
-            if df.empty or factors.empty or len(df) < 30:
+            if df.empty or factors.empty or len(df) < 31:
                 print(f"[WARN] Insufficient data for {symbol}")
                 continue
 
-            # Create label from raw values to avoid index mismatch
-            label = (df['Adj Close'].shift(-1).values > df['Adj Close'].values).astype(int)
-            df['label'] = pd.Series(label, index=df.index)
+            # Create label as aligned Series
+            label = (df['Adj Close'].shift(-1) > df['Adj Close']).astype(int)
+            df = df.iloc[:-1]  # drop last row (no label)
+            label = label.iloc[:-1]
+            df['label'] = label
 
             # Technical indicators
             rsi = RSIIndicator(close=df['Adj Close']).rsi()
